@@ -21,7 +21,7 @@ def paste_clipboard_image_text():
     # os.remove(path)
 
 if not os.path.isfile('config.json'):
-    default_config = '{"language": "en","clipboard-image-to-text-hotkey": "ctrl+shift+v"}'
+    default_config = '{"language": "en","clipboard-image-to-text-hotkey": "ctrl+shift+v","use_gpu": true}'
     json_object = json.loads(default_config)
     with open('config.json', 'w', encoding='utf-8') as f:
         json.dump(json_object, f, ensure_ascii=False, indent=4)
