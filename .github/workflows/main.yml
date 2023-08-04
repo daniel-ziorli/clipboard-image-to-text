@@ -28,17 +28,17 @@ jobs:
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
           cache: 'pip'
           cache-dependency-path: |
-            **/requirements*.txt
+            **/src/requirements.txt
 
       - name: Install Dependencies
         run: |
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install -r requirements.txt
 
       - name: Build Executable
         uses: Nuitka/Nuitka-Action@main
         with:
           nuitka-version: main
-          script-name: kasa_cli
+          script-name: src/main.py
           onefile: true
 
       - name: Upload Artifacts
