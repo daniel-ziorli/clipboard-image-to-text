@@ -1,0 +1,6 @@
+{
+    "language": "en",
+    "clipboard-image-to-text-hotkey": "ctrl+shift+v",
+    "use_gpu": true,
+    "auto_correct": true
+}

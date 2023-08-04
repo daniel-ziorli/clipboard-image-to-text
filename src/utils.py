@@ -4,31 +4,9 @@ from PIL import ImageGrab, ImageEnhance, Image
 import keyboard
 import os
 import json
-from textblob import Word
+from textblob import TextBlob
 import cv2
 import numpy as np
-
-def get_bounding_box_key(input):
-    box = input[0]
-    
-    x = (box[0][0] + box[1][0] + box[2][0] + box[3][0]) / 4
-    y = (box[0][1] + box[1][1] + box[2][1] + box[3][1]) / 4
-    
-    return x + y * 1000
-
-def sort_bounding_boxes(bounding_boxes):
-    sorted_boxes = sorted(bounding_boxes, key= lambda x:get_bounding_box_key(x))
-    return sorted_boxes
-
-def get_left_most_value(input):
-    
-    left_most_value = 999
-    for box, _, _ in input:
-        min_x = min(box[0][0], box[1][0], box[2][0], box[3][0])
-        if min_x < left_most_value:
-            left_most_value = min_x
-            
-    return left_most_value
     
 def get_clipboard_img(path):
     img = ImageGrab.grabclipboard()
@@ -60,6 +38,16 @@ def get_bounding_box_width(bounding_box):
     x_coordinates = [point[0] for point in bounding_box]
     return max(x_coordinates) - min(x_coordinates)
 
+def get_left_most_value(input):
+    
+    left_most_value = 999
+    for box, _, _ in input:
+        min_x = min(box[0][0], box[1][0], box[2][0], box[3][0])
+        if min_x < left_most_value:
+            left_most_value = min_x
+            
+    return left_most_value
+
 def get_average_char_width(results):
     if len(results) == 0:
         return -1
@@ -71,23 +59,10 @@ def get_average_char_width(results):
         character_width_sum += char_width
         
     return character_width_sum // len(results)
-    
-def get_leftmost_point(bounding_boxes):
-    leftmost_point = None
 
-    for box_info in bounding_boxes:
-        bounding_box, _, _ = box_info
-        for point in bounding_box:
-            if leftmost_point is None or point[0] < leftmost_point[0]:
-                leftmost_point = point
-
-    return leftmost_point
-
-def generate_text_from_ocr(results):
+def generate_text_from_ocr(results, auto_correct = False):
     output = ''
     prev_y_max = -1
-    # y_padding = 40
-    # x_padding = 20
     y_padding = 0
     x_padding = 0
     
@@ -95,28 +70,39 @@ def generate_text_from_ocr(results):
     if len(results) == 0:
         return ''
 
-    # sorted_results = sort_bounding_boxes(results)
     char_width = get_average_char_width(results)
+    line_height = get_average_char_width(results)
+    
     left_line = get_left_most_value(results)
     
     draw_bb(results)
 
     for box, text, _ in results:
         y_max = max(box[0][1], box[1][1], box[2][1], box[3][1])
+        
 
-        if y_max > prev_y_max + y_padding and prev_y_max != -1:
+        if y_max > prev_y_max and prev_y_max != -1:
             output = output[:-1]
-            output += '\n'
+            y_min = min(box[0][1], box[1][1], box[2][1], box[3][1])
+            height = y_max - y_min
+            new_lines = (y_max - prev_y_max) // height
+            output += '\n' * new_lines
             
         if len(output) != 0 and output[-1] == '\n':
             x_min = min(box[0][0], box[1][0], box[2][0], box[3][0])
-            spaces = ((x_min + x_padding) - left_line) // char_width
+            spaces = (x_min - left_line) // char_width
             output += ' ' * int(spaces)
             
         output += text + ' '
         prev_y_max = y_max
         
     output = output[:-1]
+    
+    if auto_correct:
+        blob = TextBlob(output)
+        corrected_output = blob.correct()
+        return corrected_output
+    
     return output
 
 def draw_bb(input):

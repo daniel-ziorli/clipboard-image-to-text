@@ -15,13 +15,13 @@ def paste_clipboard_image_text():
 
     results = reader.readtext(path, width_ths=10, height_ths=1)
     
-    output = generate_text_from_ocr(results)
+    output = generate_text_from_ocr(results, config['auto_correct'])
     
     keyboard.write(output)
     # os.remove(path)
 
 if not os.path.isfile('config.json'):
-    default_config = '{"language": "en","clipboard-image-to-text-hotkey": "ctrl+shift+v","use_gpu": true}'
+    default_config = '{"language": "en","clipboard-image-to-text-hotkey": "ctrl+shift+v","use_gpu": true,"auto_correct": false}'
     json_object = json.loads(default_config)
     with open('config.json', 'w', encoding='utf-8') as f:
         json.dump(json_object, f, ensure_ascii=False, indent=4)
