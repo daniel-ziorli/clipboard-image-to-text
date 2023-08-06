@@ -60,45 +60,38 @@ def get_average_char_width(results):
         
     return character_width_sum // len(results)
 
-def generate_text_from_ocr(results, auto_correct = False):
+def generate_text_from_ocr(results):
     output = ''
     prev_y_max = -1
-    y_padding = 0
-    x_padding = 0
-    
     
     if len(results) == 0:
         return ''
 
     char_width = get_average_char_width(results)
-    line_height = get_average_char_width(results)
-    
     left_line = get_left_most_value(results)
     
     draw_bb(results)
 
     for box, text, _ in results:
         y_max = max(box[0][1], box[1][1], box[2][1], box[3][1])
-        
 
         if y_max > prev_y_max and prev_y_max != -1:
-            output = output[:-1]
             y_min = min(box[0][1], box[1][1], box[2][1], box[3][1])
             height = y_max - y_min
             new_lines = (y_max - prev_y_max) // height
-            output += '\n' * new_lines
+            if new_lines < 1:
+                new_lines = 1
+            output += read_config("new_line_character") * int(new_lines)
             
         if len(output) != 0 and output[-1] == '\n':
             x_min = min(box[0][0], box[1][0], box[2][0], box[3][0])
             spaces = (x_min - left_line) // char_width
             output += ' ' * int(spaces)
             
-        output += text + ' '
+        output += text
         prev_y_max = y_max
-        
-    output = output[:-1]
     
-    if auto_correct:
+    if read_config('auto_correct'):
         blob = TextBlob(output)
         corrected_output = blob.correct()
         return corrected_output
@@ -115,11 +108,14 @@ def draw_bb(input):
         br = (int(br[0]), int(br[1]))
         bl = (int(bl[0]), int(bl[1]))
         cv2.rectangle(image, tl, br, (0, 255, 0), 2)
-        cv2.putText(image, text, (tl[0], tl[1] - 10),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-        cv2.putText(image, str(i), (tr[0] - 20, tr[1] - 10),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-        
+        cv2.putText(image, text, (tl[0], tl[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+        cv2.putText(image, str(i), (tr[0] - 20, tr[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
         i += 1
         
     cv2.imwrite('temp-clipboard-image-to-text.png', image)
+    
+def read_config(key, path='config.json'):
+    with open(path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+        
+        return config[key]
