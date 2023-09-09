@@ -3,8 +3,6 @@
     "clipboard-image-to-text-hotkey": "ctrl+shift+v",
     "use_gpu": true,
     "auto_correct": false,
-    "width_threshold": 999999,
-    "height_threshold": 999999,
-    "y_difference_threshold": 1,
+    "new_line_detection_padding": 5,
     "new_line_character": "\n"
 }
