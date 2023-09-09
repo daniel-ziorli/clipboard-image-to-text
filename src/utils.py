@@ -1,8 +1,5 @@
-import random
 from easyocr import Reader
-from PIL import ImageGrab, ImageEnhance, Image
-import keyboard
-import os
+from PIL import ImageGrab
 import json
 from textblob import TextBlob
 import cv2
@@ -24,22 +21,16 @@ def get_clipboard_img(path):
 
     img.save(path,'PNG')
     
-    # img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     
-    # img = cv2.resize(img, None, fx=4, fy=4)
+    avg_pixel_intensity = np.mean(img)
 
-    # # Calculate the average pixel intensity of the image
-    # avg_pixel_intensity = np.mean(img)
+    if avg_pixel_intensity > 127:
+        _, threshed = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+    else:
+        _, threshed = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-    # # Determine the background color (white or black) based on the average pixel intensity
-    # if avg_pixel_intensity > 127:
-    #     # For predominantly white background, use regular thresholding
-    #     _, threshed = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
-    # else:
-    #     # For predominantly black background, use inverted thresholding
-    #     _, threshed = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-
-    # cv2.imwrite(path, threshed)
+    cv2.imwrite(path, threshed)
 
     return True
 
